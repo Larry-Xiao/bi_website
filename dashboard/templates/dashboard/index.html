@@ -1,0 +1,286 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>amis demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="stylesheet" href="{% static 'dashboard/sdk/sdk.css' %}" />
+    <link rel="stylesheet" href="{% static 'dashboard/sdk/helper.css' %}" />
+    <style>
+      html,
+      body,
+      .app-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" class="app-wrapper"></div>
+    <script src="http://api.map.baidu.com/api?v=2.0&ak=PcpzD0MnB5wnThAAGS7MfsX56jaPbLqQ"></script>
+    <script src="{% static 'dashboard/sdk/sdk.js' %}"></script>
+    <script type="text/javascript">
+      (function () {
+        let amis = amisRequire('amis/embed');
+        let amisJSON = {
+          "type": "page",
+          "body": [
+            {
+              "type": "tabs",
+              "className": "mb-5",
+              // "mountOnEnter": true,
+              "tabs": [
+                {
+                  "title": "主要指标",
+                  // "reload": true,
+                  "tab": 
+                    {
+                      "type": "grid-2d",
+                      "grids": [
+                        {
+                          "x": 1,
+                          "y": 1,
+                          "h": 1,
+                          "w": 4,
+                          "type": "chart",
+                          "name": "daily_income_line_chart",
+                          "height": "auto",
+                          "api": "/api/order/data_vis?type=daily_income_line&sid=${sid}",
+                          "config": {
+                            "title": {
+                              "text": "每日订单总金额"
+                            },
+                            "xAxis": {
+                              "type": "category",
+                              "boundaryGap": false,
+                              "data": "${x_data}"
+                            },
+                            "yAxis": {},
+                            "series": [
+                              {
+                                "name": "销量",
+                                "type": "line",
+                                "data": "${y_data}"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "x": 5,
+                          "y": 1,
+                          "h": 1,
+                          "w": 4,
+                          "type": "chart",
+                          "name": "platform_pie_chart",
+                          "height": "auto",
+                          "api": "/api/order/data_vis?type=platform_pie&sid=${sid}",
+                          "config": {
+                            "title": {
+                              "text": "渠道来源占比"
+                            },
+                            "series": [
+                              {
+                                "type": "pie",
+                                "data": "${platform_data}"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "x": 9,
+                          "y": 1,
+                          "h": 1,
+                          "w": 4,
+                          "type": "chart",
+                          "name": "product_line_income_bar_chart",
+                          "height": "auto",
+                          "api": "/api/order/data_vis?type=product_line_income_bar&sid=${sid}",
+                          "config": {
+                            "title": {
+                              "text": "各产品线收入"
+                            },
+                            "xAxis": {
+                              "type": "category",
+                              "data": "${x_data}"
+                            },
+                            "yAxis": {
+                              "type": "value"
+                            },
+                            "series": [
+                              {
+                                "type": "bar",
+                                "showBackground": true,
+                                "backgroundStyle": {
+                                  "color": 'rgba(180, 180, 180, 0.2)'
+                                },
+                                "data": "${y_data}",
+                                "label": {
+                                    "position": 'top',
+                                    "show": true
+                                },
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "x": 1,
+                          "y": 2,
+                          "h": 1,
+                          "w": 12,
+                          "height": "auto",
+                          "align": "center",
+                          "name": "total_income_text",
+                          "type": "service",
+                          "api": "/api/order/data_vis?type=total_income&sid=${sid}",
+                          "className": "text-5xl text-primary",
+                          "body": {
+                            "type": "tpl",
+                            "tpl": "总计：${total_income}元",
+                          },
+                        }
+                      ]
+                    }
+                },
+                {
+                  "title": "次要指标",
+                  // "reload": true,
+                  "tab": 
+                    {
+                      "type": "chart",
+                      "name": "provinces_sales_map",
+                      "height": "600px",
+                      "api": "/api/order/data_vis?type=provinces_sales_map&sid=${sid}",
+                      "config": {
+                        'title': {
+                          'text': '各省销量情况',
+                          'left': 'center'
+                        },
+                        'tooltip' : {
+                          'trigger': 'item'
+                        },
+                        'bmap': {
+                          'zoom': 5,
+                          'roam': true,
+                        },
+                        'visualMap': {
+                          'show': true,
+                          'top': 'top',
+                          'min': '${min_value}',
+                          'max': '${max_value}',
+                          'seriesIndex': 0,
+                          'calculable': true,
+                        },
+                        'series' : [
+                          {
+                            'name': '销量',
+                            'type': 'heatmap',
+                            'coordinateSystem': 'bmap',
+                            'data': '${provinces_sales}',
+                          }
+                        ]
+                      }
+                    }
+                }
+              ]
+            },
+            {
+              "type": "form",
+              "title": "条件搜索",
+              "actionType": "reload",
+              "target": "my_crud",
+              "body": [
+                {
+                  "type": "condition-builder",
+                  "label": "条件组件",
+                  "name": "conditions",
+                  "description": "适合让用户自己拼查询条件，然后后端根据数据生成 query where",
+                  "fields": [
+                    {
+                      "label": "金额",
+                      "type": "number",
+                      "name": "order.price",
+                      "operators": ['equal', 'not_equal', 'less', 'less_or_equal', 'greater', 'greater_or_equal', 'between', 'not_between']
+                    },
+                    {
+                      "label": "订单状态",
+                      "type": "select",
+                      "name": "order.status",
+                      "options": [
+                        {"label": "未支付", "value": "PE"},
+                        {"label": "支付成功", "value": "SU"},
+                        {"label": "取消", "value": "CA"},
+                        {"label": "过期", "value": "OV"},
+                        {"label": "退款", "value": "RE"}
+                      ]
+                    },
+                    {
+                      "label": "下单时间",
+                      "type": "datetime",
+                      "name": "order.create_time",
+                      "operators": ['less', 'less_or_equal', 'greater', 'greater_or_equal', 'between', 'not_between']
+                    },
+                    {
+                      "label": "课程ID",
+                      "type": "number",
+                      "name": "course.cid",
+                      "operators": ['equal', 'not_equal', 'less', 'less_or_equal', 'greater', 'greater_or_equal', 'between', 'not_between']
+                    },
+                    {
+                      "label": "课程标题",
+                      "type": "text",
+                      "name": "course.title",
+                      "operators": ['equal', 'not_equal', 'like', 'not_like', 'starts_with', 'ends_with']
+                    },
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "crud",
+              "name": "my_crud",
+              "api": {
+                "method": "post",
+                "url": "/api/order/filter",
+                "headers": {
+                  "X-CSRFToken": "{{ csrf_token }}"
+                }
+              },
+              "headerToolbar": [
+                {
+                  "type": "action",
+                  "actionType": "reload",
+                  "target": "platform_pie_chart?sid=${sid},daily_income_line_chart?sid=${sid},product_line_income_bar_chart?sid=${sid},total_income_text?sid=${sid},provinces_sales_map?sid=${sid}",
+                  "label": "刷新图表",
+                  "level": "primary"
+                }
+              ],
+              "syncLocation": false,
+              "affixHeader": false,
+              "columns": [
+                {% for item in order_fields %}
+                {
+                  "name": "{{item.name}}",
+                  "label": "{{item.label}}"
+                },
+                {% endfor %}
+              ]
+            }
+          ]
+        };
+        let amisScoped = amis.embed('#root', amisJSON);
+      })();
+      window.echarts = amisRequire('echarts');
+    </script>
+    <script src="{% static 'dashboard/sdk/china.js' %}"></script>
+    <script src="{% static 'dashboard/sdk/world.js' %}"></script>
+  </body>
+</html>
